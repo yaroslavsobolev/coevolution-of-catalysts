@@ -1,86 +1,78 @@
-gaussian_center = 0.85
+from matplotlib import gridspec
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import numpy as np
+import matplotlib.pyplot as plt
+from substrate_colors import *
+
+
+def simpleaxis(ax=None):
+    '''removes the top and right boundaries from pyplot plots for aesthetic reasons'''
+    if ax is None:
+        ax = plt.gca()
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.get_xaxis().tick_bottom()
+    ax.get_yaxis().tick_left()
+
+
+def gaussian(x, mu, sig):
+    return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
+
+
+def potential(x, widthparameter=0.2):
+    return 20 * (1 - np.exp(-0.2 * np.sqrt(widthparameter * (x ** 2))))
+
+
+def P(x, T):
+    return np.exp(-(potential(x - np.log(T))) / T)
 
 if __name__ == '__main__':
-    # use numpy to plot a gaussian curve in matplotlib
-    import numpy as np
-    import matplotlib.pyplot as plt
+    fig = plt.figure(tight_layout=False, figsize=(12, 8))
+    gs = gridspec.GridSpec(4, 2)
 
-    # define the gaussian function
-    def gaussian(x, mu, sig):
-        return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
+    ax0 = fig.add_subplot(gs[:, 0])
+    plt.xlabel('Space of all catalysts (coordinate in arbitrary units)')
+    plt.ylabel('Space of all substrates (coordinate in arbitrary units)')
 
-    # # define the x-axis
-    # x_axis = np.linspace(-10, 10, 120)
-    #
-    # # plot the gaussian function
-    # plt.plot(x_axis, gaussian(x_axis, gaussian_center, 1), color='black')
-    # plt.xlabel('Conditions space')
-    # plt.ylabel('Yield')
-    # plt.xticks([])
-    # plt.axhline(y=0.05)
-    # plt.ylim(-0.05, 1.1)
-    # plt.annotate('Detection threshold', xy=(-10, 0.07), color='C0')
-    # plt.fill_between(x=x_axis, y1=0.05, y2=gaussian(x_axis, gaussian_center, 1), where=gaussian(x_axis, gaussian_center, 1) > 0.05, color='C0', alpha=0.2)
-    # # plt.show()
-    # plt.savefig('gauss1.png')
-    #
-    # x2 = np.linspace(-10, 10, 5)
-    # plt.scatter(x2, gaussian(x2, gaussian_center, 1), color='C1')
-    # plt.title('Initial blind sampling')
-    # plt.savefig('gauss2.png')
-    # # plt.show()
-    #
-    # plt.title('Gradient descent')
-    # x2 = np.linspace(-0.1, gaussian_center, 5)
-    # plt.scatter(x2, gaussian(x2, gaussian_center, 1), color='C2')
-    # plt.savefig('gauss3.png')
-    # plt.show()
+    x = np.linspace(-10, 10, 1000)
 
+    y = np.logspace(-0.6, 1.4, 1000)
+    X, Y = np.meshgrid(x, y)
+    Z = P(X, Y)
+    # Z[Z<1e-1] = np.nan
+    c = ax0.pcolormesh(X, Y, Z, cmap='viridis', vmin=0, vmax=1.01)
+    ax0.set_yscale('log')
+    ax0.text(-0.08, 1, 'A', transform=ax0.transAxes,
+             fontsize=16, fontweight='bold', va='top', ha='left')
 
+    list_of_values = [0.3, 0.5, 1.3, 12]
+    for i, value in enumerate(list_of_values):
+        color = substrate_colors[3 - i]
+        plt.axhline(y=value, color=color, linestyle='--', linewidth=3)
 
+    cbar = fig.colorbar(c, cax=fig.add_axes([0.20, 0.95, 0.2, 0.02]), label='Yield', orientation='horizontal')
 
+    axs = [fig.add_subplot(gs[0, 1])]
+    simpleaxis(axs[0])
+    for i in range(1, 4, 1):
+        axs.append(fig.add_subplot(gs[i, 1], sharex=axs[0]))
+        simpleaxis(axs[i])
+    for i in range(0, 3, 1):
+        plt.setp(axs[i].get_xticklabels(), visible=False)
 
-    # N = 100
-    # X, Y = np.mgrid[0.01:1:complex(0, N), 0.01:1:complex(0, N)]
-    # Z = gaussian(Y, 0.2+X/2, 0.1*(1-X+0.1))
-    # Z[X<0.85] = np.nan
-    #
-    # fig, ax0 = plt.subplots(1)
-    # plt.ylabel('Free coordinates of condition space')
-    # plt.xlabel('Coordinates for which we prefer certain value \n (i.e. substrate structure, product structure)')
-    # plt.tight_layout()
-    # c = ax0.pcolor(X, Y, Z, cmap='plasma')
-    # cbar = fig.colorbar(c, ax=ax0, label='Yield')
-    # plt.axvline(x=0.93, color='white', linestyle='--')
-    # plt.savefig('map1.png')
-    #
-    # plt.show()
+    panel_labels = ['B', 'C', 'D', 'E']
+    for i in range(4):
+        axs[i].text(-0.17, 1.02, panel_labels[i], transform=axs[i].transAxes,
+                    fontsize=16, fontweight='bold', va='top', ha='left')
+        axs[i].set_ylabel('Yield')
 
+    axs[-1].set_xlabel('Space of all catalysts (coordinate in arbitrary units)')
 
+    for i, ax in enumerate(axs):
+        ax.plot(x, P(x, list_of_values[::-1][i]), color=substrate_colors[i])
+        ax.fill_between(x=x, y1=0, y2=P(x, list_of_values[::-1][i]), color=substrate_colors[i], alpha=0.8)
+        ax.set_ylim(0, 1)
+        ax.set_xlim(np.min(x), np.max(x))
 
-    N = 100
-    X, Y = np.mgrid[0.01:1:complex(0, N), 0.01:1:complex(0, N)]
-
-    Z = gaussian(Y, 0.2+X/2, 0.1*(1-X+0.1))
-    # Z[X<0.85] = np.nan
-
-    fig, ax0 = plt.subplots(1)
-    plt.ylabel('Free coordinates of condition space')
-    plt.xlabel('Coordinates for which we prefer certain value \n (i.e. substrate structure, product structure)')
-    plt.tight_layout()
-    c = ax0.pcolor(X, Y, Z, cmap='plasma')
-    cbar = fig.colorbar(c, ax=ax0, label='Yield')
-    plt.axvline(x=0.93, color='white', linestyle='--')
-    plt.axvline(x=0.1, color='C2', linestyle='--')
-    plt.axvline(x=0.35, color='C2', linestyle='--')
-    plt.axvline(x=0.6, color='C2', linestyle='--')
-    plt.axvline(x=0.80, color='C2', linestyle='--')
-    plt.savefig('map2.png')
-
-    ys = np.linspace(0.1, 0.9, 5)
-    xs = 0.1 * np.ones_like(ys)
-    plt.scatter(xs, ys, color='C2')
-    plt.savefig('map3.png')
-
+    fig.savefig('figures/ilustration_1.png', dpi=300)
     plt.show()
-
