@@ -78,12 +78,6 @@ for key in setC:
 from rdkit import Chem
 from rdkit import DataStructs
 from rdkit.Chem.Fingerprints import FingerprintMols
-# import pandas as pd
-
-# read and Conconate the csv's
-# df_1 = pd.read_csv('first.csv')
-# df_2 = pd.read_csv('second.csv')
-# df_3 = pd.concat([df_1, df_2])
 
 # proof and make a list of SMILES
 # df_smiles = df_3['smiles']
@@ -101,7 +95,8 @@ c_smiles = list(joined_set.keys())
 ms = [Chem.MolFromSmiles(x) for x in c_smiles]
 
 # make a list of fingerprints (fp)
-fps = [FingerprintMols.FingerprintMol(x) for x in ms]
+fps = [FingerprintMols.FingerprintMol(x, minPath=1, maxPath=9, fpSize=2048, bitsPerHash=2,
+                                      useHs=True, tgtDensity=0, minSize=128) for x in ms]
 
 # the list for the dataframe
 qu, ta, sim = [], [], []
@@ -124,16 +119,38 @@ for i in range(100):
 
 cmaps = [plt.cm.Blues, plt.cm.Reds, plt.cm.Greens]
 for setid in range(3):
-    fig1 = plt.figure(1, figsize=(5, 5))
+    fig1 = plt.figure(1, figsize=(15, 15))
     nx.draw_networkx(G, pos, node_color=[joined_set[c_smiles[node]][setid]/100 for node in G.nodes()], node_size=400, cmap=cmaps[setid],
                      edge_color='white', edgecolors='black')
     plt.axis('equal')
-    sm = plt.cm.ScalarMappable(cmap=cmaps[setid], norm=plt.Normalize(vmin=100*min([joined_set[c_smiles[node]][setid]/100 for node in G.nodes()]),
-                                                                     vmax=100*max([joined_set[c_smiles[node]][setid]/100 for node in G.nodes()])))
-    sm._A = []
-    plt.colorbar(sm, orientation='horizontal', fraction=0.02, pad=0.1, label='Yield (%)')
+    # sm = plt.cm.ScalarMappable(cmap=cmaps[setid], norm=plt.Normalize(vmin=100*min([joined_set[c_smiles[node]][setid]/100 for node in G.nodes()]),
+    #                                                                  vmax=100*max([joined_set[c_smiles[node]][setid]/100 for node in G.nodes()])))
+    # sm._A = []
+    # plt.colorbar(sm, orientation='horizontal', fraction=0.02, pad=0.1, label='Yield (%)')
     fig1.savefig(f'figures/temp2/set_{setid}.png', dpi=300)
     # plt.show()
     plt.close(fig1)
+
+dim = 15
+pos = nx.spring_layout(G, weight='myweight', iterations=500, dim=dim)
+for i in range(100):
+    pos = nx.spring_layout(G, weight='myweight', pos=pos, iterations=500, dim=dim)
+
+for setid in range(3):
+    mean_yield = np.mean([joined_set[c_smiles[node]][setid] for node in G.nodes()])
+    meanpos = np.mean(np.array([pos[node] * joined_set[c_smiles[node]][setid] for node in G.nodes()]), axis=0) / mean_yield
+    weighted_standard_deviation_of_positions = np.sqrt(
+        np.mean(np.array([np.linalg.norm(pos[node] - meanpos) ** 2 * joined_set[c_smiles[node]][setid] for node in G.nodes()]), axis=0) / mean_yield
+    )
+    print(f'set {setid}: mean yield = {mean_yield}, mean position = {meanpos},'
+          f'weighted standard deviation of positions = {weighted_standard_deviation_of_positions}')
+    if dim == 2:
+        fig1 = plt.figure(1, figsize=(5, 5))
+        nx.draw_networkx(G, pos, node_color=[joined_set[c_smiles[node]][setid]/100 for node in G.nodes()], node_size=400, cmap=cmaps[setid],
+                         edge_color='white', edgecolors='black')
+        plt.scatter([meanpos[0]], [meanpos[1]], s=100, c='black', marker='x')
+        plt.show()
+        plt.axis('equal')
+
 
 # plt.savefig('test.png')
