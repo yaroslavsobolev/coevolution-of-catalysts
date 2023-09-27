@@ -94,7 +94,7 @@ c_smiles = list(joined_set.keys())
 # make a list of mols
 ms = [Chem.MolFromSmiles(x) for x in c_smiles]
 
-# make a list of fingerprints (fp)
+# make a list of fingerprints (fingerprint)
 fps = [FingerprintMols.FingerprintMol(x, minPath=1, maxPath=9, fpSize=2048, bitsPerHash=2,
                                       useHs=True, tgtDensity=0, minSize=128) for x in ms]
 
@@ -103,9 +103,9 @@ qu, ta, sim = [], [], []
 
 G = nx.Graph()
 indices = list(range(len(fps)))
-# compare all fp pairwise without duplicates
+# compare all fingerprint pairwise without duplicates
 tanisims = []
-for n, fps1 in enumerate(fps): # -1 so the last fp will not be used
+for n, fps1 in enumerate(fps): # -1 so the last fingerprint will not be used
     for m in indices[n+1:]:
         fps2 = fps[m]
         G.add_edges_from([(n, fps.index(fps2), {'myweight': (1/(1.001-DataStructs.TanimotoSimilarity(fps[n], fps2)))**3})])

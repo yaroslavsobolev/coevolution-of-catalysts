@@ -10,15 +10,15 @@ df['BB_count'] = df.loc[:, 'BB1':'BB16'].sum(axis=1)
 # rename columns
 df.rename(columns={'Chemical Name': 'name'}, inplace=True)
 df.rename(columns={'Molecular Formula': 'formula'}, inplace=True)
-df.rename(columns={'Whole molecule SMILES': 'SMILES'}, inplace=True)
+df.rename(columns={'Whole molecule SMILES': 'smiles'}, inplace=True)
 
 # drop columns containing "Unnamed"
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
 # cleanup some SMILES
-df.loc[514, 'SMILES'] = df.loc[514, 'SMILES'].split(' ')[-1]
+df.loc[514, 'smiles'] = df.loc[514, 'smiles'].split(' ')[-1]
 # add missing '1' to SMILES
-df.loc[1073, 'SMILES'] = df.loc[1073, 'SMILES'] + '1'
+df.loc[1073, 'smiles'] = df.loc[1073, 'smiles'] + '1'
 
 # save excel cell color in first column into a separate column
 from openpyxl import load_workbook
@@ -34,4 +34,4 @@ df = df.drop([880])
 df = df.reset_index(drop=True)
 
 # save to parquet
-df.to_parquet('data/DNP_SMILES.parquet')
+df.to_parquet('data/polyketides.parquet')
