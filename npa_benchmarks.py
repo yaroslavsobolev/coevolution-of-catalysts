@@ -14,8 +14,8 @@ data = {
 "ωB97X-D\ncc-pVTZ" : -0.28184,
 "ωB97X-D\naug-cc-pVTZ" : -0.28890,
 "ωB97X-D\ncc-pVQZ" : -0.28527,
-"MP2\naug-cc-pVTZ" : -0.27794,
-"CCSD(T)\naug-cc-pVTZ" : -0.27794
+"MP2\naug-cc-pVQZ" : -0.29683,
+"CCSD(T)\naug-cc-pVTZ" : -0.29542
 }
 
 # make a bar plot with the data, keys are x axis labels
@@ -27,15 +27,15 @@ plt.ylabel('NPA charge on the carbon bonded to bromine, e')
 
 # plt.title('NPA charge on carbon closest to bromine in halide D')
 plt.gca().invert_yaxis()
-plt.ylim(-0.26, -0.36)
+plt.ylim(0, -0.36)
 plt.tight_layout()
 
 # annotate last bar with 'ground truth' text.
-plt.annotate('Maximum accuracy.\nSlowest calculations.', xy=(7, -0.29486), xytext=(5.8, -0.32), ha='center',
+plt.annotate('Maximum accuracy.\nSlowest calculations.', xy=(7, -0.29486), xytext=(5.8, -0.34), ha='center',
                 arrowprops=dict(facecolor='black', shrink=0.02, alpha=0.3),
                 )
 
-plt.annotate('Method we use', xy=(3, -0.29486), xytext=(3.2, -0.33), ha='center',
+plt.annotate('Method we use', xy=(3, -0.28486), xytext=(3.2, -0.33), ha='center',
                 arrowprops=dict(facecolor='black', shrink=0.02, alpha=0.3),
                 )
 

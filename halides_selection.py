@@ -25,6 +25,7 @@ from sklearn.manifold import TSNE
 from tqdm import tqdm
 from tqdm.contrib.concurrent import process_map
 
+
 # pickle.HIGHEST_PROTOCOL = 4
 
 # set logging level to info and set format to include time
@@ -56,6 +57,19 @@ def fix_halide_smiles(df, colname):
                     logging.info(f'fixed halide smiles in row {i}, smiles {row[colname]} turned into {replace_with}')
     return df
 
+
+def is_trans(molecule_smiles):
+    tested_molecule = Chem.MolFromSmiles(molecule_smiles)
+    istrans = tested_molecule.HasSubstructMatch(Chem.MolFromSmarts('Br/C=C/*'), useChirality=True)
+    iscis = tested_molecule.HasSubstructMatch(Chem.MolFromSmarts('Br/C=C\*'), useChirality=True)
+    if istrans and iscis:
+        return 'both'
+    if istrans and (not iscis):
+        return 'trans'
+    if (not istrans) and iscis:
+        return 'cis'
+    if (not istrans) and (not iscis):
+        return 'neither'
 
 wrapped_mol_from_smiles = Wrapper("MolFromSmiles", "rdkit.Chem")
 

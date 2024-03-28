@@ -294,18 +294,66 @@ def sketch10():
 
     fig.show()
 
+
+def sketch11():
+    import skunk
+    from matplotlib.offsetbox import AnnotationBbox
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+
+    x = np.linspace(0, 2 * np.pi)
+    ax.plot(x, np.sin(x))
+
+    # # new code: using skunk box with id sk1
+    # box = skunk.Box(50, 50, 'sk1')
+    # ab = AnnotationBbox(box, (np.pi / 2, 1),
+    #                     xybox=(-5, -100),
+    #                     xycoords='data',
+    #                     boxcoords='offset points',
+    #                     arrowprops=dict(arrowstyle="->"))
+    # ax.add_artist(ab)
+
+    # sknunk box with id sk2
+    box = skunk.Box(50, 50, 'sk2')
+    ab = AnnotationBbox(box, (3 * np.pi / 2, -1),
+                        xybox=(-5, 100),
+                        xycoords='data',
+                        boxcoords='offset points',
+                        arrowprops=dict(arrowstyle="->"))
+
+    ax.add_artist(ab)
+
+    # insert current figure into itself at sk1
+    # insert svg file in sk2
+    svg = skunk.insert(
+        {
+            'sk1': skunk.pltsvg(),
+            'sk2': 'skunk.svg'
+        })
+
+    # write to file
+    with open('replaced2.svg', 'w') as f:
+        f.write(svg)
+    # or in jupyter notebook
+    skunk.display(svg)
+
+
+
 if __name__ == '__main__':
+    # sketch11()
 
-    k = 4
-
-    # Initialize medoids randomly
-    initial_medoids = np.random.choice(len(fingerprints), k, replace=False).tolist()
-    print('initial randomized %i medoids: ' % k)
-    print(initial_medoids)
-
-    # Apply k-medoid clustering
-    kmedoids_instance = KMedoids(jaccard_distances, initial_medoids, data_type='distance_matrix')
-    kmedoids_instance.process()
-    clusters = kmedoids_instance.get_clusters()
-    medoids = kmedoids_instance.get_medoids()
+    # k = 4
+    #
+    # # Initialize medoids randomly
+    # initial_medoids = np.random.choice(len(fingerprints), k, replace=False).tolist()
+    # print('initial randomized %i medoids: ' % k)
+    # print(initial_medoids)
+    #
+    # # Apply k-medoid clustering
+    # kmedoids_instance = KMedoids(jaccard_distances, initial_medoids, data_type='distance_matrix')
+    # kmedoids_instance.process()
+    # clusters = kmedoids_instance.get_clusters()
+    # medoids = kmedoids_instance.get_medoids()
 
