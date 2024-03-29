@@ -13,5 +13,6 @@ optimization of organic chemistry catalysts using the coevolution approach:
 
 To reproduce the Figure 2B, run the `Figure_2B.py` script.
 To reproduce the Figure 4A, run the `Figure_4A.py` script.
+To reproduce the Figure 4B, run the `halides_clustering.py` script.
 
 See respective scripts for the paths to raw dataframes in `/data/`

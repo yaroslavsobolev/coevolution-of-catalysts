@@ -156,7 +156,8 @@ def plot_gridsearch_for_dbscan(silhouette_scores, eps_list, min_samples_list, vm
 def plot_clusters(hdf_filepath, title='', do_show=True, size_for_points=0, alpha=0.5, suffix='', percentile_for_rad=99,
                   rad_lim_factor=1, distmatrix_cache_filename=None, plot_clusters=False,
                   number_of_medoids=4, colors = ('C4', 'C2', 'C1', 'C3'), rmin=10,
-                  out_svg_file='temp.svg', annotation_label_shift=0.9, figsize=(7, 5)):
+                  out_svg_file='temp.svg', annotation_label_shift=0.9, figsize=(7, 5),
+                  do_annotate=True, show_structures=True):
     df = pd.read_hdf(hdf_filepath)
     #filename without extension
     db_filename = hdf_filepath.split('.')[0].split('/')[-1]
@@ -194,23 +195,24 @@ def plot_clusters(hdf_filepath, title='', do_show=True, size_for_points=0, alpha
             return -1
     y_to_sign_dict = {y:is_odd_sign(i) for i, y in enumerate(ys_sorted)}
 
-    for i,medoid in enumerate(medoids):
-        # get x,y from df
-        x = df.loc[medoid, 'x']
-        y = df.loc[medoid, 'y']
-        plt.scatter(x, y, s=100, marker='x', linewidth=3, zorder=100, color=colors[i])
+    if show_structures:
+        for i,medoid in enumerate(medoids):
+            # get x,y from df
+            x = df.loc[medoid, 'x']
+            y = df.loc[medoid, 'y']
+            plt.scatter(x, y, s=100, marker='x', linewidth=3, zorder=100, color=colors[i])
 
-        # sknunk box with id sk2
-        box = skunk.Box(70, 35, f'sk{i}')
-        ab = AnnotationBbox(box, (x, y),
-                            xybox=(y_to_sign_dict[y]*max_abs_x*1.6, y),
-                            xycoords='data',
-                            arrowprops=dict(arrowstyle="->"),
-                            bboxprops=dict(edgecolor=colors[i]))
+            # sknunk box with id sk2
+            box = skunk.Box(70, 35, f'sk{i}')
+            ab = AnnotationBbox(box, (x, y),
+                                xybox=(y_to_sign_dict[y]*max_abs_x*1.6, y),
+                                xycoords='data',
+                                arrowprops=dict(arrowstyle="->"),
+                                bboxprops=dict(edgecolor=colors[i]))
 
-        plt.gca().add_artist(ab)
+            plt.gca().add_artist(ab)
 
-        smiles_to_svg(df.loc[medoid, 'smiles'], f'figures/temp3/sk{i}.svg', size=(400, 200))
+            smiles_to_svg(df.loc[medoid, 'smiles'], f'figures/temp3/sk{i}.svg', size=(400, 200))
 
     # turn the column 'smiles' to canonical
     for j, rep in enumerate(representative_smiles):
@@ -225,7 +227,8 @@ def plot_clusters(hdf_filepath, title='', do_show=True, size_for_points=0, alpha
             alpha_here = 0.5
         plt.scatter(x, y, s=100, marker='o', linewidth=3, zorder=100, facecolors='none', edgecolors='black', alpha=alpha_here)
         # annotate with BBn for n-th representative with vertical shift of 0.1
-        plt.text(x + annotation_label_shift, y + annotation_label_shift, f'{j + 1}', fontsize=12, ha='left', va='bottom', alpha=0.5)
+        if do_annotate:
+            plt.text(x + annotation_label_shift, y + annotation_label_shift, f'{j + 1}', fontsize=12, ha='left', va='bottom', alpha=0.5)
 
     # ax = None
     for i, cluster in enumerate(clusters):
@@ -296,21 +299,22 @@ def plot_clusters(hdf_filepath, title='', do_show=True, size_for_points=0, alpha
     fig.savefig(f'figures/embeddings/halide_clustering_{suffix}.png', dpi=300)
     # fig.savefig(f'figures/embeddings/panelH_{suffix}.eps', dpi=300)
 
-    # insert current figure into itself at sk1
-    # insert svg file in sk2
-    svg = skunk.insert(
-        {
-            f'sk{i}': f'figures/temp3/sk{i}.svg'
-        for i in range(len(medoids))
-        }
-    )
+    if show_structures:
+        # insert current figure into itself at sk1
+        # insert svg file in sk2
+        svg = skunk.insert(
+            {
+                f'sk{i}': f'figures/temp3/sk{i}.svg'
+            for i in range(len(medoids))
+            }
+        )
 
-    # write to file
-    with open(out_svg_file, 'w') as f:
-        f.write(svg)
+        # write to file
+        with open(out_svg_file, 'w') as f:
+            f.write(svg)
 
-    svg_code = open(out_svg_file, 'rt').read()
-    svg2png(bytestring=svg_code, write_to=f'{out_svg_file}.png', dpi=300)
+        svg_code = open(out_svg_file, 'rt').read()
+        svg2png(bytestring=svg_code, write_to=f'{out_svg_file}.png', dpi=300)
 
     if do_show:
         plt.show()
@@ -340,27 +344,47 @@ if __name__ == '__main__':
     #                     do_show=False
     #                   )
 
-    ## BROMINE-CENTERED LOCAL METRIC
-    decayrad_str = '4p0'
-    px = 60
-    db_filepath = f'data/unique_halides_reclassed_plus_bbs_localmetric_decayrad{decayrad_str}_tsne_px{px}_lr70_50kiter.hdf'
-    distmatrix_cache_filename = f'data/unique_halides_reclassed_plus_bbs_distance_matrix_localmetric_decayrad{decayrad_str}.npy'
-    for nclusters in range(4, 9):
+    ## HYBRID METRIC version 2
+    hyw_str = '1p00'
+    db_filepath = f'data/unique_halides_reclassed_plus_bbs_hybridW1p00-{hyw_str}_tsne_px40_lr70_50kiter.hdf'
+    distmatrix_cache_filename = 'data/unique_halides_reclassed_plus_bbs_distance_matrix_hybridW1p00-1p00.npy'
+    for nclusters in range(4, 5):
         plot_clusters(db_filepath,
                         title=f'',
-                        suffix=f'_localmetric_decayrad{decayrad_str}_px{px}',
+                        suffix=f'_hybridW1p00-{hyw_str}_kmedoids_v2_labels',
                         rad_lim_factor=1.4,
                         distmatrix_cache_filename=distmatrix_cache_filename,
                         plot_clusters=True,
                         number_of_medoids=nclusters,
                         size_for_points=20,
-                        colors = [f'C{i}' for i in range(10)],
-                        out_svg_file=f'figures/embeddings/halide_clustering_localmetric_decayrad{decayrad_str}_px{px}_nclusters{nclusters}.svg',
+                        colors = ['C0']*10,
+                        out_svg_file=f'figures/embeddings/halide_clustering_nclusters{nclusters}.svg',
                         do_show=True,
-                        annotation_label_shift=0.4,
-                        alpha=0.3,
-                        figsize=(6, 7)
+                        do_annotate=True,
+                        show_structures=False
                       )
+
+    # ## BROMINE-CENTERED LOCAL METRIC
+    # decayrad_str = '4p0'
+    # px = 60
+    # db_filepath = f'data/unique_halides_reclassed_plus_bbs_localmetric_decayrad{decayrad_str}_tsne_px{px}_lr70_50kiter.hdf'
+    # distmatrix_cache_filename = f'data/unique_halides_reclassed_plus_bbs_distance_matrix_localmetric_decayrad{decayrad_str}.npy'
+    # for nclusters in range(4, 9):
+    #     plot_clusters(db_filepath,
+    #                     title=f'',
+    #                     suffix=f'_localmetric_decayrad{decayrad_str}_px{px}',
+    #                     rad_lim_factor=1.4,
+    #                     distmatrix_cache_filename=distmatrix_cache_filename,
+    #                     plot_clusters=True,
+    #                     number_of_medoids=nclusters,
+    #                     size_for_points=20,
+    #                     colors = [f'C{i}' for i in range(10)],
+    #                     out_svg_file=f'figures/embeddings/halide_clustering_localmetric_decayrad{decayrad_str}_px{px}_nclusters{nclusters}.svg',
+    #                     do_show=True,
+    #                     annotation_label_shift=0.4,
+    #                     alpha=0.3,
+    #                     figsize=(6, 7)
+    #                   )
 
     # # dbscan param gridsearch
     # distmatrix = np.load(distmatrix_cache_filename)
