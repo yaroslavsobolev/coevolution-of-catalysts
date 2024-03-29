@@ -343,7 +343,8 @@ def plot_panelB_from_hdf(hdf_filepath, title='', do_show=True, alpha_for_pk=0.05
 
 
 def plot_panelC_from_hdf(hdf_filepath, title='', do_show=True, size_for_points=10,
-                         alpha=0.4, alpha_parent=0.1, suffix=''):
+                         alpha=0.4, alpha_parent=0.1, suffix='', colors = ['C4', 'C3', 'C2', 'C1'],
+                         option='4A'):
     df = pd.read_hdf(hdf_filepath)
     #filename without extension
     db_filename = hdf_filepath.split('.')[0].split('/')[-1]
@@ -363,19 +364,26 @@ def plot_panelC_from_hdf(hdf_filepath, title='', do_show=True, size_for_points=1
     #                 label='$\\alpha$-methyl-$\\beta$-hydroxy', zorder=9, linewidth=0)
     # select_BBs = ['BB1', 'BB3', 'BB4', 'BB9']
     select_BBs = ['BB11', 'BB1', 'BB3', 'BB9']
-    colors = ['C4', 'C2', 'C1', 'C3']
     # a mask where all of the select BBs columns of df are zero
     mask = df[select_BBs].eq(0).all(axis=1)
     # ax = sns.scatterplot(x="x", y="y", s=7, data=df[(df['is_pk']==1) & (df['a-methyl-b-hydroxyl']==1) & mask], color='C0',
     #                      edgecolor=None, alpha=alpha_parent,
     #                 label='a-methyl-b-hydroxyl', zorder=10, linewidth=0)
-    ax = sns.scatterplot(x="x", y="y", s=size_for_points, data=df[(df['BB_count'] > 0) & mask], color='C0',
-                         edgecolor=None, alpha=alpha,
-                         label='polyketides', zorder=-10, linewidth=0)
 
-    ax = sns.scatterplot(x="x", y="y", s=7, data=df[(df['is_pk']==1) & (df['BB_count'] == 0)], color='black',
-                         edgecolor=None, alpha=alpha_parent,
-                    label='polyketides', zorder=-10, linewidth=0)
+    # ax = sns.scatterplot(x="x", y="y", s=size_for_points, data=df[(df['BB_count'] > 0) & mask], color='black',
+    #                      edgecolor=None, alpha=alpha,
+    #                      label='polyketides', zorder=-10, linewidth=0)
+
+    if option=='2B':
+        ax = sns.scatterplot(x="x", y="y", s=7, data=df[(df['is_pk']==1) & (df['BB_count'] == 0)], color='C2',
+                             edgecolor=None, alpha=alpha_parent,
+                        label='polyketides', zorder=-10, linewidth=0)
+    elif option=='4A':
+        ax = sns.scatterplot(x="x", y="y", s=7, data=df[mask], color='#000F87',
+                             edgecolor=None, alpha=alpha_parent,
+                        label='other_alpha_methyl_beta_hydroxyl', zorder=-10, linewidth=0)
+
+
     # ic(df[(df['is_pk']==1) & (df['a-methyl-b-hydroxyl']==1)].count())
     # sns.scatterplot(ax=ax, x="x", y="y", s=20, data=df[df['BB3']>0], color='C3', edgecolor=None, alpha=1,
     #                 label='BB3', zorder=20, linewidth=0)
@@ -854,9 +862,9 @@ def faerun_plot_halides(hdf_filepath):
 
 if __name__ == '__main__':
     add_BBs()
-    # filename = 'only_ab_polyketides_fingerprints_tsne_px30_lr707_50kiter_reclassed.hdf'
-    # plot_panelC_from_hdf(hdf_filepath=f'data/{filename}',
-    #                      alpha_parent=0.1, suffix='_ab_only')
+    filename = 'only_ab_polyketides_fingerprints_tsne_px30_lr707_50kiter_reclassed.hdf'
+    plot_panelC_from_hdf(hdf_filepath=f'data/{filename}',
+                         alpha_parent=0.6, suffix='_ab_only')
     # plot_panelB_from_hdf(hdf_filepath=f'data/{filename}', alpha_for_pk=0.2)
 
     # propagate_reclassing()
@@ -915,7 +923,7 @@ if __name__ == '__main__':
     # # plot_panelC_from_hdf(hdf_filepath=f'data/{filename}', alpha_parent=0.4)
     #
     # plot_panelC_from_hdf(hdf_filepath=f'data/only_polyketides_fingerprints_len100k_tsne_px80_lr1855_50kiter_with_ab_rec.hdf',
-    #                      alpha_parent=0.1)
+    #                      alpha_parent=0.25, alpha=0.25)
     #
     #
     # ########### Halides
@@ -946,17 +954,17 @@ if __name__ == '__main__':
     #                                 suffix=f'_hybridW1p00-{hyw_str}',
     #                                 rad_lim_factor=1.4)
 
-    # with local metric
-    decay_radius = 4
-    perplexity = 60
-    string_of_decay_radius = f'{decay_radius:.1f}'.replace('.', 'p')
-    tsne_for_halides_with_local_metric(decay_radius=decay_radius,
-                                        df_filename='data/unique_halides_reclassed_plus_bbs.pickle', perplexity=perplexity)
-    plot_panel_halides_from_hdf(f'data/unique_halides_reclassed_plus_bbs_localmetric_decayrad{string_of_decay_radius}_tsne_px{perplexity}_lr70_50kiter.hdf',
-                                title = f'Bromine-centered metric, decay radius {decay_radius}',
-                                suffix=f'_decayrad_{string_of_decay_radius}_px{perplexity}',
-                                rad_lim_factor=1.4,
-                                size_for_points=10)
+    # # with local metric
+    # decay_radius = 4
+    # perplexity = 60
+    # string_of_decay_radius = f'{decay_radius:.1f}'.replace('.', 'p')
+    # tsne_for_halides_with_local_metric(decay_radius=decay_radius,
+    #                                     df_filename='data/unique_halides_reclassed_plus_bbs.pickle', perplexity=perplexity)
+    # plot_panel_halides_from_hdf(f'data/unique_halides_reclassed_plus_bbs_localmetric_decayrad{string_of_decay_radius}_tsne_px{perplexity}_lr70_50kiter.hdf',
+    #                             title = f'Bromine-centered metric, decay radius {decay_radius}',
+    #                             suffix=f'_decayrad_{string_of_decay_radius}_px{perplexity}',
+    #                             rad_lim_factor=1.4,
+    #                             size_for_points=10)
 
 
 # # with K-Medoids
