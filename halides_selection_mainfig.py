@@ -106,8 +106,8 @@ def plot_panelA_from_hdf(hdf_filepath, title='', do_show=True, radlim_percentile
     df = pd.read_hdf(hdf_filepath)
     #filename without extension
     db_filename = hdf_filepath.split('.')[0].split('/')[-1]
-    # for all x column values that are larger than 146, decrease then by 30
-    df.loc[df['x'] > 146, 'x'] = df.loc[df['x'] > 146, 'x'] - 50
+    # # for all x column values that are larger than 146, decrease then by 30
+    # df.loc[df['x'] > 146, 'x'] = df.loc[df['x'] > 146, 'x'] - 50
 
     if do_center_of_mass_centering:
         df['x'] = df['x'] - df['x'].mean()
@@ -350,7 +350,7 @@ def plot_panelC_from_hdf(hdf_filepath, title='', do_show=True, size_for_points=1
     db_filename = hdf_filepath.split('.')[0].split('/')[-1]
 
     # print sums in each column. Column names are from 'BB1' to 'BB16'
-    print(df[['BB1', 'BB2', 'BB3', 'BB4', 'BB5', 'BB6', 'BB7', 'BB8', 'BB9', 'BB10', 'BB11', 'BB12', 'BB13', 'BB14', 'BB15', 'BB16']].sum())
+    print(df[['BB1', 'BB2', 'BB3', 'BB4', 'BB5', 'BB6', 'BB7', 'BB8', 'BB9', 'BB10', 'BB11', 'BB12', 'BB13', 'BB14', 'BB15', 'BB16']].sum().to_numpy())
 
 
     # defining the colors into the 'color' column. If synthesizable column is 1, then color is red else blue
@@ -862,9 +862,10 @@ def faerun_plot_halides(hdf_filepath):
 
 if __name__ == '__main__':
     add_BBs()
-    filename = 'only_ab_polyketides_fingerprints_tsne_px30_lr707_50kiter_reclassed.hdf'
-    plot_panelC_from_hdf(hdf_filepath=f'data/{filename}',
-                         alpha_parent=0.6, suffix='_ab_only')
+    # filename = 'only_ab_polyketides_fingerprints_tsne_px30_lr707_50kiter_reclassed.hdf'
+    # plot_panelC_from_hdf(hdf_filepath=f'data/{filename}',
+    #                      alpha_parent=0.6, suffix='_ab_only')
+
     # plot_panelB_from_hdf(hdf_filepath=f'data/{filename}', alpha_for_pk=0.2)
 
     # propagate_reclassing()
@@ -884,8 +885,15 @@ if __name__ == '__main__':
     # filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px1060_lr24735_5kiter.hdf'
     # filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px1060_lr24735_50kiter.hdf'
     # filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px353_lr24735_50kiter.hdf'
+    # filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px3534_lr24735_5kiter_fixed.hdf'
     # plot_panelA_from_hdf(hdf_filepath=f'data/{filename}', custom_x_limits=(-273, 287), figsize=(9,6),
-    #                      suffix='px353')
+    #                      suffix='px3534')
+    # filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px106_lr24735_50kiter_fixed.hdf'
+    # plot_panelA_from_hdf(hdf_filepath=f'data/{filename}', custom_x_limits=(-273, 287), figsize=(9,6),
+    #                      suffix='px106')
+    filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px35_lr24735_50kiter_fixed.hdf'
+    plot_panelA_from_hdf(hdf_filepath=f'data/{filename}', custom_x_limits=(-273, 287), figsize=(9,6),
+                         suffix='px35')
 
     # faerun_plot_panel_A_from_hdf(hdf_filepath=f'data/{filename}')
 
@@ -968,17 +976,17 @@ if __name__ == '__main__':
 
 
 # # with K-Medoids
-    # hyw_str = '1p00'
-    # db_filepath = f'data/unique_halides_reclassed_hybridW1p00-{hyw_str}_tsne_px40_lr70_50kiter.hdf'
-    # # plot_panel_halides_from_hdf(db_filepath,
-    # #                             title=f'Hybrid metric, BB groups colored',
-    # #                             suffix=f'_hybridW1p00-{hyw_str}_spectral_bbs',
-    # #                             rad_lim_factor=1.4,
-    # #                             distmatrix_cache_filename='data/unique_halides_reclassed_distance_matrix_hybridW1p00-1p00.npy',
-    # #                             plot_clusters=True,
-    # #                             number_of_medoids=4,
-    # #                             colors = ('C4', 'C2', 'C1', 'C3', 'C0'),
-    # #                             size_for_points=0)
+#     hyw_str = '1p00'
+#     db_filepath = f'data/unique_halides_reclassed_hybridW1p00-{hyw_str}_tsne_px40_lr70_50kiter.hdf'
+#     plot_panel_halides_from_hdf(db_filepath,
+#                                 title=f'Hybrid metric, BB groups colored',
+#                                 suffix=f'_hybridW1p00-{hyw_str}_spectral_bbs',
+#                                 rad_lim_factor=1.4,
+#                                 distmatrix_cache_filename='data/unique_halides_reclassed_distance_matrix_hybridW1p00-1p00.npy',
+#                                 plot_clusters=True,
+#                                 number_of_medoids=4,
+#                                 colors = ('C4', 'C2', 'C1', 'C3', 'C0'),
+#                                 size_for_points=0)
     #
     # plot_panel_halides_from_hdf(db_filepath,
     #                             title=f'Hybrid metric, clusters colored',

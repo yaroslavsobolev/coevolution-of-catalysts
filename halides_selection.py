@@ -411,6 +411,8 @@ def map4_bulk_distance_function(args_tuple):
 def distance_matrix(df, cache_filename, fp_colname ='fp_ECFP6_bv', force_recalculate=False, algo='loop',
                     memmap_mode=None, chunksize = 1000, max_workers=70):
     # if file exists, then load by np.load. Else calculate and save
+    if not os.path.exists(cache_filename):
+        logging.info(f'DId not find the cache file of distance matrix: {cache_filename}')
     if os.path.exists(cache_filename) and not force_recalculate:
         logging.info(f'Loading distance matrix from {cache_filename} with memmap mode {memmap_mode}')
         dist_matrix = np.load(cache_filename, mmap_mode=memmap_mode)
@@ -596,6 +598,8 @@ def compute_tsne_with_distmatrix_and_save(db_filepath, distmatrix_cache_filename
     df = pd.read_pickle(db_filepath)
     if limit_rows is not None:
         df = df.iloc[:limit_rows]
+    if os.path.exists(distmatrix_cache_filename):
+        logging.info(f'Found distance matrix file at {distmatrix_cache_filename}')
     dist_matrix = distance_matrix(df, cache_filename=distmatrix_cache_filename, fp_colname=fp_colname, memmap_mode=memmap_mode)
     if limit_rows is not None:
         dist_matrix = dist_matrix[:limit_rows, :limit_rows]

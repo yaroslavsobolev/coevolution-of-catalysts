@@ -3,47 +3,47 @@ import umap
 from sklearnex import patch_sklearn
 patch_sklearn()
 
-def compute_umap_with_distmatrix_and_save(db_filepath, distmatrix_cache_filename='auto', output_filename='auto',
-                                          fp_colname = 'fp_ECFP6_bv', memmap_mode=None, umap_params=None,
-                                          limit_rows=None, change_dtypes_to_str=True):
-    # extract the filepath without extension
-    db_filepath_without_extension = db_filepath.split('.')[0]
-    if distmatrix_cache_filename == 'auto':
-        distmatrix_cache_filename = db_filepath_without_extension + '_distance_matrix.npy'
-    if umap_params is None:  # use default parameters
-        umap_params = {'n_neighbors':15, 'n_components':2, 'metric':'precomputed'}
-    if output_filename == 'auto':
-        output_filename = db_filepath_without_extension + '_tsne.hdf'
-    df = pd.read_pickle(db_filepath)
-    if limit_rows is not None:
-        df = df.iloc[:limit_rows]
-    dist_matrix = distance_matrix(df, cache_filename=distmatrix_cache_filename, fp_colname=fp_colname,
-                                  memmap_mode=memmap_mode)
-    if limit_rows is not None:
-        dist_matrix = dist_matrix[:limit_rows, :limit_rows]
-    logging.info(f'Loaded distance matrix from {distmatrix_cache_filename}')
-
-
-    reducer = umap.UMAP(**umap_params)
-    z = reducer.fit_transform(dist_matrix)
-    df["x"] = z[:, 0]
-    df["y"] = z[:, 1]
-
-    # drop these columns because they are objects and cannot be saved to hdf without pickle, but pickle
-    # has compatibitily issues betweeb versions of python/pickle/pandas
-    if 'fp_ECFP6_bv' in df.columns:
-        df = df.drop(columns=['fp_ECFP6_bv', 'fp_ECFP6'])
-    if 'fp_MAP4_bv' in df.columns:
-        df = df.drop(columns=['fp_MAP4_bv', 'fp_MAP4'])
-    # change drypes to string
-    if change_dtypes_to_str:
-        df['smiles'] = df['smiles'].astype(str)
-        df['id'] = df['id'].astype(str)
-        df['class'] = df['class'].astype(str)
-    pickle.HIGHEST_PROTOCOL = 4
-    df.to_hdf(output_filename, 'df')
-
-    logging.info(f'Saved tsne embedding to {output_filename}')
+# def compute_umap_with_distmatrix_and_save(db_filepath, distmatrix_cache_filename='auto', output_filename='auto',
+#                                           fp_colname = 'fp_ECFP6_bv', memmap_mode=None, umap_params=None,
+#                                           limit_rows=None, change_dtypes_to_str=True):
+#     # extract the filepath without extension
+#     db_filepath_without_extension = db_filepath.split('.')[0]
+#     if distmatrix_cache_filename == 'auto':
+#         distmatrix_cache_filename = db_filepath_without_extension + '_distance_matrix.npy'
+#     if umap_params is None:  # use default parameters
+#         umap_params = {'n_neighbors':15, 'n_components':2, 'metric':'precomputed'}
+#     if output_filename == 'auto':
+#         output_filename = db_filepath_without_extension + '_tsne.hdf'
+#     df = pd.read_pickle(db_filepath)
+#     if limit_rows is not None:
+#         df = df.iloc[:limit_rows]
+#     dist_matrix = distance_matrix(df, cache_filename=distmatrix_cache_filename, fp_colname=fp_colname,
+#                                   memmap_mode=memmap_mode)
+#     if limit_rows is not None:
+#         dist_matrix = dist_matrix[:limit_rows, :limit_rows]
+#     logging.info(f'Loaded distance matrix from {distmatrix_cache_filename}')
+#
+#
+#     reducer = umap.UMAP(**umap_params)
+#     z = reducer.fit_transform(dist_matrix)
+#     df["x"] = z[:, 0]
+#     df["y"] = z[:, 1]
+#
+#     # drop these columns because they are objects and cannot be saved to hdf without pickle, but pickle
+#     # has compatibitily issues betweeb versions of python/pickle/pandas
+#     if 'fp_ECFP6_bv' in df.columns:
+#         df = df.drop(columns=['fp_ECFP6_bv', 'fp_ECFP6'])
+#     if 'fp_MAP4_bv' in df.columns:
+#         df = df.drop(columns=['fp_MAP4_bv', 'fp_MAP4'])
+#     # change drypes to string
+#     if change_dtypes_to_str:
+#         df['smiles'] = df['smiles'].astype(str)
+#         df['id'] = df['id'].astype(str)
+#         df['class'] = df['class'].astype(str)
+#     pickle.HIGHEST_PROTOCOL = 4
+#     df.to_hdf(output_filename, 'df')
+#
+#     logging.info(f'Saved umap embedding to {output_filename}')
 
 #### OPERATIONS AFTER CUSTOM POLYKETIDES ADDED MANUALLY BY ANTONIO
 
@@ -103,17 +103,17 @@ def compute_umap_with_distmatrix_and_save(db_filepath, distmatrix_cache_filename
 #                                               change_dtypes_to_str=False)
 
 
-df = pd.read_pickle('data/DNP_FULL_2016_with_polyketides_fingerprints_len100k.pickle')
-distance_matrix(df, cache_filename=f'data/DNP_FULL_2016_with_polyketides_fingerprints_len100k_distance_matrix.npy',
-                force_recalculate=True, algo='loop', fp_colname='fp_ECFP6_bv')
+# df = pd.read_pickle('data/DNP_FULL_2016_with_polyketides_fingerprints_len100k.pickle')
+# distance_matrix(df, cache_filename=f'data/DNP_FULL_2016_with_polyketides_fingerprints_len100k_distance_matrix.npy',
+#                 force_recalculate=True, algo='loop', fp_colname='fp_ECFP6_bv')
 tsne_params = {'n_components': 2, 'verbose': 2, 'random_state': 138,
                'metric': 'precomputed',
                'early_exaggeration': 1, 'perplexity': 300, 'init': 'random',
-               'n_iter': 5000, 'learning_rate': 1000,
+               'n_iter': 50000, 'learning_rate': 1000,
                'n_iter_without_progress': 1000, 'method': 'barnes_hut',
                'n_jobs': 1}
 
-for perplexity in [1000, 3000]:#, [1000, 3000, 10000, 30000, 100000, 300]:
+for perplexity in [100]:#[1000, 3000]:#, [1000, 3000, 10000, 30000, 100000, 300]:
     for learning_rate in [70000]:
         logging.info(f'learning_rate={learning_rate}, perplexity={perplexity}')
         db_filepath = 'data/DNP_FULL_2016_with_polyketides_fingerprints_len100k.pickle'
