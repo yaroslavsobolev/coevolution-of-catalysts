@@ -76,7 +76,7 @@ def plot_embedding(n_neighbours, min_dist, withlegend=False, suffix=''):
     if withlegend:
         plt.legend(loc='upper left')
     # plt.tight_layout()
-    fig.savefig(f'figures/embeddings/ligands/ligands_coev_plus_kraken_umap_nn{n_neighbours}_md{min_dist}{suffix}.png')
+    fig.savefig(f'figures/embeddings/ligands/ligands_coev_plus_kraken_umap_nn{n_neighbours}_md{min_dist}{suffix}.png', dpi=300)
     fig.savefig(f'figures/embeddings/ligands/ligands_coev_plus_kraken_umap_nn{n_neighbours}_md{min_dist}{suffix}.svg')
 
     maxligand_ids = [1, 10, 31, 37]
@@ -90,17 +90,47 @@ def plot_embedding(n_neighbours, min_dist, withlegend=False, suffix=''):
     fig.savefig(f'figures/embeddings/ligands/ligands_coev_plus_kraken_umap_nn{n_neighbours}_md{min_dist}{suffix}_marked_ligands.png')
 
 
+def plot_embeddings_for_the_hyperparameter_grid(n_neighbours, min_dist, ax):
+    filepath_without_extension = 'ligands_coev_plus_kraken'
+    db_filepath = 'data/ligands/' + f'{filepath_without_extension}_umap_nn{n_neighbours}_md{min_dist}.hdf'
+    # load to df and plot 'x' vs 'y'
+    df = pd.read_hdf(db_filepath)
+    # subtract mean from x and y
+    df['x'] -= df['x'].mean()
+    df['y'] -= df['y'].mean()
+    # divide by the maximum absolute value of x and y
+    maxval = max(df['x'].abs().max(), df['y'].abs().max())
+    df['x'] /= maxval
+    df['y'] /= maxval
+
+    point_size = 20
+    label='Commercial (KRAKEN)'
+    sns.scatterplot(ax=ax, x="x", y="y", data=df[df['in_kraken'] == 1], edgecolor='none', alpha=0.4, color='C0',
+                    label=label, s=point_size)
+
+    # plot x,y for those that have not nan in the 'A' column, use no fill and black edge, empty circle
+    label='This work'
+    kws = {"facecolor": "none", "linewidth": 2}
+    sns.scatterplot(ax=ax, x="x", y="y", data=df[df['A'].notna()], edgecolor='black', alpha=0.7, label=label,
+                    s=point_size, **kws)
+
+    label='Productive with substrate 4'
+    # plot x,y for those that have non-zero in 'C' column, use light yellow and low-zorder, large circular marker, and no edge
+    sns.scatterplot(ax=ax, x="x", y="y", data=df[df['C'] > 0], edgecolor='none', alpha=1, color='khaki', zorder=-10, s=200,
+                    label=label)
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     # make_combined_dataset_of_ligands()
 
-    # # make plots for all UMAP hyperparameters
-    # for n_neighbours in [3, 10, 30, 100]:
-    #     for min_dist in [0.01, 0.05, 0.1, 0.2, 0.5, 1]:
-    #         plot_embedding(n_neighbours, min_dist)
-    #         # plt.show()
-    #         # clear all matplotlib figures
-    #         plt.close('all')
+    # make plots for all UMAP hyperparameters
+    for n_neighbours in [3, 10, 30, 100]:
+        for min_dist in [0.01, 0.05, 0.1, 0.2, 0.5, 1]:
+            plot_embedding(n_neighbours, min_dist)
+            # plt.show()
+            # clear all matplotlib figures
+            plt.close('all')
 
     # make plots for specific UMAP hyperparameters
     n_neighbours = 30
@@ -108,4 +138,34 @@ if __name__ == '__main__':
     plot_embedding(n_neighbours, min_dist)
     # plot_embedding(n_neighbours, min_dist, withlegend=True, suffix='_withlegend')
     plt.show()
+
+    # make a grid of plots with different hyperparameters for the Supplementary Information
+    # make a fig, axarr with grid
+    fig, axarr = plt.subplots(6, 4, figsize=(22, 30), sharex=True, sharey=True)
+    for i, n_neighbours in enumerate([3, 10, 30, 100]):
+        for j, min_dist in enumerate([0.01, 0.05, 0.1, 0.2, 0.5, 1]):
+            plot_embeddings_for_the_hyperparameter_grid(n_neighbours, min_dist, ax=axarr[j, i])
+            # make a title with hyperparameters for this subplot
+            # axarr[j, i].set_title(f'n_neighbours={n_neighbours}, min_dist={min_dist}')
+            # remove all axes and ticks
+            axarr[j, i].axis('off')
+            # make equal aspect ratio
+            axarr[j, i].set_aspect('equal')
+            # remove legends
+            axarr[j, i].get_legend().remove()
+    # plt.tight_layout()
+    # make a vertical label to the left of the grid to indicate min_dist
+    font_size = 20
+    for j, min_dist in enumerate([0.01, 0.05, 0.1, 0.2, 0.5, 1]):
+        axarr[j, 0].text(-0.5, 0.5, f'min_dist={min_dist}', rotation=90, verticalalignment='center', horizontalalignment='center',
+                        transform=axarr[j, 0].transAxes, fontsize=font_size)
+    # make a title to the top of the first row of plot to indicate n_neighbours
+    for i, n_neighbours in enumerate([3, 10, 30, 100]):
+        axarr[0, i].text(0.5, 1.1, f'n_neighbors={n_neighbours}', verticalalignment='center', horizontalalignment='center',
+                        transform=axarr[0, i].transAxes, fontsize=font_size)
+
+    # plt.tight_layout()
+    fig.savefig('figures/embeddings/ligands/ligands_coev_plus_kraken_umap_grid.png', dpi=150)
+    plt.show()
+
 
