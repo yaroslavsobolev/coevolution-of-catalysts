@@ -5,6 +5,7 @@ import sqlalchemy.orm
 from matplotlib.colors import ListedColormap
 from halides_selection import *
 from halides_clustering import *
+from faerun import Faerun
 
 
 def make_combined_dataset_of_ligands():
@@ -90,6 +91,61 @@ def plot_embedding(n_neighbours, min_dist, withlegend=False, suffix=''):
     fig.savefig(f'figures/embeddings/ligands/ligands_coev_plus_kraken_umap_nn{n_neighbours}_md{min_dist}{suffix}_marked_ligands.png')
 
 
+def plot_embedding_faerun(n_neighbours, min_dist):
+    filepath_without_extension = 'ligands_coev_plus_kraken'
+    db_filepath = 'data/ligands/' + f'{filepath_without_extension}_umap_nn{n_neighbours}_md{min_dist}.hdf'
+    # load to df and plot 'x' vs 'y'
+    df = pd.read_hdf(db_filepath)
+    # flip x axis
+    df['x'] = -df['x']
+
+    # annotate_labels
+    for i, row in tqdm(df.iterrows(), desc='Annotating labels', total=len(df)):
+        mol_here = Chem.MolFromSmiles(row['smiles'])
+        canon_smiles = Chem.MolToSmiles(mol_here)
+        df.loc[i, 'smiles'] = canon_smiles
+        chemical_formula = Chem.rdMolDescriptors.CalcMolFormula(mol_here)
+        label = f"{canon_smiles}__{chemical_formula}"
+        df.loc[i, 'label'] = label
+
+    df['bb'] = 0
+    for i, row in tqdm(df.iterrows(), desc='Assigning classes', total=len(df)):
+        if row['in_kraken'] == 1:
+            if np.isnan(row['A']):
+                df.loc[i, 'bb'] = 0
+            else:
+                df.loc[i, 'bb'] = 1
+        else:
+            if row['C'] > 0:
+                df.loc[i, 'bb'] = 3
+            else:
+                df.loc[i, 'bb'] = 2
+
+    bb_ids = df['bb'].values
+    # labels_groups, groups = Faerun.create_categories(bb_ids)
+    labels_groups = [(i, x) for i, x in
+                     enumerate(['krak', 'krakANDcoev', 'coev', 'prodW4'])]
+
+    # select_BBs = ['BB5', 'BB1', 'BB3', 'BB9']
+    # colors = ['C4', 'C2', 'C1', 'C3']
+    # colors = [f'C{i}' for i in range(0, 10)]
+    colors = ['C0', 'C1', 'C2', 'yellow']
+    title = 'ligands_UMAP_with_kraken'
+    custom_cmap = ListedColormap(colors, name="custom2")
+    faerun = Faerun(view="front", coords=False, title=title)  # , clear_color="#ffffff", )
+    faerun.add_scatter(title, {"x": df['x'], "y": df['y'],
+                               "c": [bb_ids],
+                               "labels": df['label']}, has_legend=True, \
+                       colormap=[custom_cmap], \
+                       point_scale=2,
+                       categorical=[True], \
+                       series_title=["class"], \
+                       max_legend_label=[None], \
+                       min_legend_label=[None],
+                       legend_labels=[labels_groups])
+    faerun.plot(title, template='smiles')
+
+
 def plot_embeddings_for_the_hyperparameter_grid(n_neighbours, min_dist, ax):
     filepath_without_extension = 'ligands_coev_plus_kraken'
     db_filepath = 'data/ligands/' + f'{filepath_without_extension}_umap_nn{n_neighbours}_md{min_dist}.hdf'
@@ -136,6 +192,8 @@ if __name__ == '__main__':
     n_neighbours = 30
     min_dist = 0.2
     plot_embedding(n_neighbours, min_dist)
+    # this function makes the interactive plot. Mind that I flipped the x axis for Antonio's convenience
+    plot_embedding_faerun(n_neighbours, min_dist)
     # plot_embedding(n_neighbours, min_dist, withlegend=True, suffix='_withlegend')
     plt.show()
 
