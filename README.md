@@ -27,6 +27,7 @@ To reproduce the Figure 4B, run the `halides_clustering.py` script.
 
 To reproduce the ligands UMAP, run the `ligands_mapping_mainfig.py` script.
 
-To reproduce the TSNE embedding of natural products, run the `halides_selection_mainfig.py` script.
+For interactive TSNE map, download the `/interactive_HTML_embedding/` folder and open the `DNP_TSNE_ECFP6.html` file in a browser.
 
-See respective scripts for the paths to raw dataframes in `/data/`
+Natural charges calculatd with density functional theory (DFT) are provided in the `data/qm/unique_halides_and_bb_vacuum.csv` file.
+Run the `qm_nbo_analysis.py` script to reproduce the plot of the natural charges.
