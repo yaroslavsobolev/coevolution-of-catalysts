@@ -350,7 +350,10 @@ def plot_panelC_from_hdf(hdf_filepath, title='', do_show=True, size_for_points=1
     db_filename = hdf_filepath.split('.')[0].split('/')[-1]
 
     # print sums in each column. Column names are from 'BB1' to 'BB16'
-    print(df[['BB1', 'BB2', 'BB3', 'BB4', 'BB5', 'BB6', 'BB7', 'BB8', 'BB9', 'BB10', 'BB11', 'BB12', 'BB13', 'BB14', 'BB15', 'BB16']].sum().to_numpy())
+    columns_list = ['BB1', 'BB2', 'BB3', 'BB4', 'BB5', 'BB6', 'BB7', 'BB8', 'BB9', 'BB10', 'BB11', 'BB12', 'BB13', 'BB14', 'BB15', 'BB16']
+    sums_here = df[columns_list].sum().to_numpy()
+    for i, x in enumerate(sums_here):
+        print(f'{columns_list[i]}\t{x}')
 
 
     # defining the colors into the 'color' column. If synthesizable column is 1, then color is red else blue
@@ -640,7 +643,7 @@ def plot_panel_halides_from_hdf(hdf_filepath, title='', do_show=True, size_for_p
     # set count column type to int
 
     # group by 'bb' column and sort by count of rows in each group
-    df_grouped = df.groupby('bb').count().sort_values(by='count', ascending=False)
+    df_grouped = df.groupby('bb').count().sort_values(by='bb', ascending=True)
     print(df_grouped)
 
     # defining the colors into the 'color' column. If synthesizable column is 1, then color is red else blue
@@ -770,7 +773,7 @@ def add_BBs():
     filepath_without_extension = db_filepath.split('.')[0]
     df = pd.read_pickle(df_filename)
     df = fix_halide_smiles(df, 'smiles')
-    df_npas = pd.read_csv('D:/Docs/Dropbox/Lab/catalyst-coevolution/unique_halides_and_bb_vacuum.csv')
+    df_npas = pd.read_csv('data/qm/unique_halides_and_bb_vacuum.csv')
     logging.info(f'NaNs in the NPA column: {df_npas["npa"].isna().sum()}')
     # for rows in df_npas with indices starting from 230, add the rows into df
     for index in range(230, len(df_npas)):
@@ -784,6 +787,8 @@ def add_BBs():
                         'fp_ECFP6_bv':fingerprint_bv_here},
                        ignore_index=True)
     df.to_pickle('data/unique_halides_reclassed_plus_bbs.pickle')
+    # sum of counts where bb columns is equal to BB1
+    sum_bb1 = df[df['bb'] == 'BB1']['count'].sum()
 
 def huh():
     df = pd.read_pickle('data/polyketides_bitvect_fp.pickle')
@@ -883,19 +888,24 @@ if __name__ == '__main__':
 
     # T-SNE ECFP4 for entire DNP
     # filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px1060_lr24735_5kiter.hdf'
-    # filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px1060_lr24735_50kiter.hdf'
+    filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px1060_lr24735_50kiter.hdf' ## this one is used in the article
     # filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px353_lr24735_50kiter.hdf'
+    plot_panelA_from_hdf(hdf_filepath=f'data/{filename}', custom_x_limits=(-273, 287), figsize=(9, 6),
+                         suffix='_article')
+
     # filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px3534_lr24735_5kiter_fixed.hdf'
     # plot_panelA_from_hdf(hdf_filepath=f'data/{filename}', custom_x_limits=(-273, 287), figsize=(9,6),
     #                      suffix='px3534')
     # filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px106_lr24735_50kiter_fixed.hdf'
     # plot_panelA_from_hdf(hdf_filepath=f'data/{filename}', custom_x_limits=(-273, 287), figsize=(9,6),
     #                      suffix='px106')
-    filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px35_lr24735_50kiter_fixed.hdf'
-    plot_panelA_from_hdf(hdf_filepath=f'data/{filename}', custom_x_limits=(-273, 287), figsize=(9,6),
-                         suffix='px35')
 
-    # faerun_plot_panel_A_from_hdf(hdf_filepath=f'data/{filename}')
+    # filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px35_lr24735_50kiter_fixed.hdf'
+    # plot_panelA_from_hdf(hdf_filepath=f'data/{filename}', custom_x_limits=(-273, 287), figsize=(9,6),
+    #                      suffix='px35')
+
+    filename = 'DNP_FULL_2016_with_polyketides_fingerprints_len100k_tsne_px1060_lr24735_50kiter.hdf'
+    faerun_plot_panel_A_from_hdf(hdf_filepath=f'data/{filename}')
 
     # UMAP
     # filename = 'DNP_FULL_2016_with_polyketides_fingerprints_fixed2_map4fingerprints_umap_nn1000.hdf'
@@ -1000,6 +1010,7 @@ if __name__ == '__main__':
 
     # ####### MAP$ Halides
     # # tsne_for_halides_map4()
-    # # plot_panel_halides_from_hdf('data/unique_halides_map4fingerprints_tsne_px20_lr1_50kiter.hdf')
+    # plot_panel_halides_from_hdf('data/unique_halides_map4fingerprints_tsne_px20_lr1_50kiter.hdf')
+    # plot_panel_halides_from_hdf('data/unique_halides_reclassed_plus_bbs_localmetric_decayrad4p0_tsne_px60_lr70_50kiter.hdf')
 
 
